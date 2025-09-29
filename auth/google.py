@@ -10,12 +10,16 @@ class GoogleAuth:
 
     async def authenticate(self, token_request: TokenRequest) -> GoogleAuthResponse:
         try:
-            # Verify the OAuth 2.0 ID token
+            # Verify the OAuth 2.0 ID token from Google
             idinfo = id_token.verify_oauth2_token(
                 token_request.token,
                 google_requests.Request(),
                 self.client_id
             )
+
+            # Check if the token is intended for our app
+            if idinfo['aud'] != self.client_id:
+                raise HTTPException(status_code=400, detail="Invalid audience")
 
             # Extract user information
             user_id = idinfo["sub"]
